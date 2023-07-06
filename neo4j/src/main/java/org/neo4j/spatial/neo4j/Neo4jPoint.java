@@ -29,9 +29,9 @@ class Neo4jPoint implements Point {
     @Override
     public double[] getCoordinate() {
         org.neo4j.graphdb.spatial.Point location = (org.neo4j.graphdb.spatial.Point) this.node.getProperty(property);
-        List<Double> coordinateList = location.getCoordinate().getCoordinate();
+        double[] coordinateList = location.getCoordinate().getCoordinate().clone();
 
-        return coordinateList.stream().mapToDouble(d -> d).toArray();
+        return coordinateList;
     }
 
     public CRS getCRS() {

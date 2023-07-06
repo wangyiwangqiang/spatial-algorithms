@@ -19,8 +19,12 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.LineString;
 import org.locationtech.jts.io.ParseException;
 import org.locationtech.jts.io.WKTReader;
-import org.neo4j.driver.v1.*;
-import org.neo4j.driver.v1.types.Point;
+import org.neo4j.driver.AuthTokens;
+import org.neo4j.driver.Driver;
+import org.neo4j.driver.GraphDatabase;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Session;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 
@@ -37,7 +41,10 @@ public class Viewer {
 
         int color = 0;
 
-        Driver driver = GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "Neo4j"));
+        Driver driver = GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "wang1026"));
+        var authToken = AuthTokens.basic("neo4j", "password");
+        var result = driver.executableQuery("CREATE (n)").execute();
+        System.out.println(result.summary().counters().nodesCreated());
 
         try (Session session = driver.session()) {
             int[] polygonIds = new int[]{
@@ -119,7 +126,7 @@ public class Viewer {
     }
 
     private static void addPolygonWKTFromDB(String query, Map<String, Object> parameters, Viewer viewer, Session session, int colorId) {
-        StatementResult result = session.run(query, parameters);
+        Result result = session.run(query, parameters);
         if (!result.hasNext()) {
             System.out.println("No result found for parameters: " + parameters);
             return;
@@ -134,7 +141,7 @@ public class Viewer {
     }
 
     private static void addPolylineWKTFromDB(String query, Map<String, Object> parameters, Viewer viewer, Session session, int colorId) {
-        StatementResult result = session.run(query, parameters);
+        Result result = session.run(query, parameters);
         if (!result.hasNext()) {
             System.out.println("No result found for parameters: " + parameters);
             return;
@@ -149,7 +156,7 @@ public class Viewer {
     }
 
     private static void addPolygonFromDB(String query, Map<String, Object> parameters, Viewer viewer, Session session, int colorId) {
-        StatementResult result = session.run(query, parameters);
+        Result result = session.run(query, parameters);
         if (!result.hasNext()) {
             System.out.println("No result found for parameters: " + parameters);
             return;
@@ -167,9 +174,9 @@ public class Viewer {
             joiner = new StringJoiner(",", "POLYGON((", "))");
 
             for (Point point : locations) {
-                joiner.add(point.x() + " " + point.y());
+                joiner.add(point.x + " " + point.y);
             }
-            joiner.add(locations.get(0).x() + " " + locations.get(0).y());
+            joiner.add(locations.get(0).x + " " + locations.get(0).y);
 
 
             viewer.addPolygon(joiner.toString(), colorId);
